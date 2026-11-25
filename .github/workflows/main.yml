@@ -1,0 +1,29 @@
+name: Bina APK
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cari projek
+        run: |
+          F=$(find . -name settings.gradle -not -path './.git/*' | head -1)
+          if [ -z "$F" ]; then echo "::error::settings.gradle tiada - fail projek belum diupload"; find . -not -path './.git/*' | head -50; exit 1; fi
+          echo "PROJ=$(dirname "$F")" >> $GITHUB_ENV
+          echo "Projek dijumpai di: $(dirname "$F")"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+      - name: Bina APK
+        working-directory: ${{ env.PROJ }}
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
+          gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SSAASTV-apk
+          path: ${{ env.PROJ }}/app/build/outputs/apk/debug/*.apk
