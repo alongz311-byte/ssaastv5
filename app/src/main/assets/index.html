@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSAASTV</title>
+<style>
+/* TEMA GLOSSY — ringan untuk Android box: hanya gradient + inset highlight, tanpa blur/backdrop-filter/shadow berat */
+:root{--bg:#070b1a;--bg2:#10183a;--panel:#18234a;--panel2:#0c1330;--line:#3b4d86;--gold:#fcd34d;--gold2:#f59e0b;--ink:#f1f5ff;--mute:#9fb0d6;--hl:rgba(255,255,255,.22)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;color:var(--ink);font-family:Roboto,"Segoe UI",Arial,sans-serif;font-size:1.9vh;user-select:none}
+html{background:var(--bg)}
+body{display:grid;grid-template-rows:11fr 59fr 24fr 6fr;gap:.8vh;padding:.8vh;
+  background:radial-gradient(120% 70% at 50% -10%,#24357a 0%,rgba(36,53,122,0) 60%),linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%)}
+.row{display:grid;gap:.8vh;min-height:0}
+.h{grid-template-columns:4fr 4fr 3fr 5fr 4fr}
+.m{grid-template-columns:5fr 2fr 2fr}
+.b{grid-template-columns:1fr 1fr 1fr}
+/* Panel kaca berkilat */
+.p{background:linear-gradient(180deg,#26356b 0%,var(--panel) 38%,var(--panel2) 100%);
+  border:1px solid #5f74b8;border-top-color:#9db0ec;border-bottom-color:#26335f;border-radius:1.4vh;overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(0,0,0,.45),0 .3vh 0 rgba(0,0,0,.35);
+  display:flex;flex-direction:column;min-height:0;position:relative}
+/* Kilauan separuh atas */
+.p::before{content:"";position:absolute;left:0;right:0;top:0;height:46%;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.03) 100%);border-radius:1.4vh 1.4vh 60% 60%/1.4vh 1.4vh 3vh 3vh}
+#mc::before,#gal::before{display:none}
+/* Tajuk panel — bar berkilat ikut warna */
+.t{position:relative;font-size:1.3vh;font-weight:800;text-align:center;padding:.5vh;letter-spacing:.12em;text-transform:uppercase;flex:none;color:#fff;
+  text-shadow:0 1px 0 rgba(0,0,0,.45);border-bottom:1px solid rgba(0,0,0,.4);
+  background:linear-gradient(180deg,rgba(255,255,255,.38) 0%,rgba(255,255,255,.08) 50%,rgba(0,0,0,.12) 51%,rgba(0,0,0,.25) 100%),#3b4d86;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.h1{background-color:#2563eb!important}.h2{background-color:#0d9488!important}.h3{background-color:#16a34a!important}.h4{background-color:#db2777!important}.h5{background-color:#6d4aff!important}
+.h1,.h2,.h3,.h4,.h5{color:#fff!important}
+.c{flex:1;display:flex;align-items:center;justify-content:space-around;min-height:0;padding:0 .5vw;text-align:center;position:relative}
+.brand{flex-direction:row;align-items:center;justify-content:center;gap:1vw}
+.brand img{position:absolute;inset:.55vh;width:calc(100% - 1.1vh);height:calc(100% - 1.1vh);object-fit:contain;background:radial-gradient(circle at 35% 30%,#fff 0%,#e2e8f5 100%);border-radius:50%;padding:3px;box-shadow:inset 0 1px 0 #fff}
+.brand div{position:relative}
+.brand b{display:block;font-size:2.6vh;line-height:1.1;font-weight:800;letter-spacing:.04em;color:var(--gold)}
+.brand small{font-size:1.3vh;color:var(--mute);letter-spacing:.2em}
+.clock{justify-content:center;align-items:center;text-align:center}
+#ct,#cd{position:relative}
+#ct{font-size:5.4vh;font-weight:800;line-height:1;color:var(--gold);background:linear-gradient(180deg,#fff7cc 0%,var(--gold) 50%,var(--gold2) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#ct small{font-size:2vh;margin-left:.4vw}
+#cd{font-size:1.8vh;color:#d6e0f5;margin-top:.5vh;text-transform:uppercase}
+.c>*{position:relative}
+.k{font-size:1.2vh;color:var(--mute)}
+.v{font-size:1.8vh;font-weight:800;color:var(--gold);text-shadow:0 1px 0 rgba(0,0,0,.5)}
+.big{font-size:3.4vh;font-weight:800}
+.e{font-size:2.8vh}
+.src{font-size:1vh;color:#7f8fb5;margin-top:.2vh}
+/* Media */
+#mc{background:#000;border:2px solid #7f94d8;border-top-color:#c4d2ff}
+#mc.fs{position:fixed;inset:0;z-index:99;border-radius:0;border:0}
+#mc iframe,#mc video{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+#mc video{object-fit:contain;display:none}
+#mc iframe{pointer-events:none}
+.ctl{position:absolute;top:1vh;right:1vh;z-index:5;display:flex;gap:.5vw;opacity:.55}
+.ctl:focus-within,.ctl:hover{opacity:1}
+.ctl button{color:#fff;border:1px solid rgba(255,255,255,.45);border-radius:.9vh;font-size:2vh;padding:.4vh .9vh;cursor:pointer;
+  background:linear-gradient(180deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,.1) 50%,rgba(0,0,0,.55) 51%,rgba(0,0,0,.7) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+button:focus{outline:3px solid var(--gold);background:linear-gradient(180deg,#fde68a,#f59e0b)!important;color:#000}
+#ml{position:absolute;top:1vh;left:1vh;z-index:5;background-image:linear-gradient(180deg,rgba(255,255,255,.4) 0%,rgba(255,255,255,.08) 50%,rgba(0,0,0,.18) 100%);font-size:1.3vh;font-weight:800;padding:.3vh .9vh;border-radius:.8vh;border:1px solid rgba(255,255,255,.4);text-shadow:0 1px 0 rgba(0,0,0,.4)}
+/* Senarai skrol */
+.sc{flex:1;overflow:hidden;position:relative;min-height:0;padding:0 .6vh}
+.sc>div{}
+.it{position:relative;background:linear-gradient(180deg,#34478a 0%,#223164 48%,#18234c 52%,#1b2a5a 100%);border:1px solid rgba(255,255,255,.14);border-left:4px solid #3b82f6;border-radius:.9vh;padding:.8vh 1vh;margin:.8vh 0;box-shadow:inset 0 1px 0 rgba(255,255,255,.28)}
+.it .d{font-size:1.3vh;color:#a9d0ff;font-weight:700}
+.it .a{font-weight:600;line-height:1.2;margin-top:.3vh;font-size:1.7vh}
+.it .g{font-size:1.1vh;color:var(--mute);text-align:right;margin-top:.3vh;text-transform:uppercase}
+.rss .a{font-size:1.4vh}
+.bd{border-left-color:#ec4899;display:flex;gap:1vh;align-items:center}
+.bd .a{margin:0;font-size:1.5vh}
+.bd .d{color:#fbb6dc}
+/* Lencana & pengepala hari lahir (warna inline dikekalkan, kilat ditindih) */
+#bd [style*="background"]{background-image:linear-gradient(180deg,rgba(255,255,255,.4) 0%,rgba(255,255,255,.08) 50%,rgba(0,0,0,.18) 100%)!important;text-shadow:0 1px 0 rgba(0,0,0,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.msg{text-align:center;color:var(--mute);font-size:1.4vh;margin-top:2vh}
+#gal{border:2px solid #7f94d8;border-top-color:#c4d2ff}
+#gal img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1s}
+#gal .t{background-color:#334a95}
+.it.baru{border-color:var(--gold);border-left-width:6px;background:linear-gradient(180deg,#5a4a12 0%,#3a2f0a 50%,#2a2208 100%)}
+.it.baru .a::after{content:" BARU";font-size:1.1vh;font-weight:800;color:#000;background:var(--gold);border-radius:3px;padding:0 .5vh;margin-left:.6vh;vertical-align:middle}
+#pcu{font-size:1vh;color:var(--mute);text-align:center;flex:none;padding:.2vh 0}
+#sl .nx{background:rgba(252,211,77,.2);border-radius:.8vh;padding:.2vh .6vh;box-shadow:inset 0 0 0 1px var(--gold)}
+#sl .nx .k{color:#fff;font-weight:700}
+/* Pengumuman */
+.ft{flex-direction:row;align-items:center;background:linear-gradient(180deg,#8a1f33 0%,#5a0f1f 50%,#3d0a15 100%);border-color:#d6677a;border-top-color:#ffb3c0}
+.ft::before{height:50%}
+.ft b{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.45) 0%,rgba(255,255,255,.1) 50%,rgba(0,0,0,.15) 51%,rgba(0,0,0,.3) 100%),#dc2626;height:100%;display:flex;align-items:center;padding:0 1.2vw;font-size:1.5vh;font-weight:800;white-space:nowrap;text-shadow:0 1px 0 rgba(0,0,0,.45);border-right:1px solid rgba(0,0,0,.4)}
+.mq{position:relative;flex:1;overflow:hidden;white-space:nowrap}
+#mt{display:inline-block;will-change:transform;font-weight:700;font-size:2.2vh;color:#fff4cf;text-shadow:0 1px 0 rgba(0,0,0,.5)}
+
+/* ===== Animasi logo (hanya transform/opacity = ringan untuk GPU Android box) ===== */
+.lg{position:relative;flex:none;width:7vh;height:7vh;border-radius:50%;background:rgba(252,211,77,.28);animation:lgIn 1.2s cubic-bezier(.2,.8,.2,1) both}
+/* Cincin emas berputar (kepala komet) */
+.lg::before{content:"";position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,rgba(252,211,77,0) 0deg,rgba(252,211,77,0) 190deg,rgba(245,158,11,.85) 300deg,#fff6c9 352deg,#fff 360deg);
+  animation:lgSpin 5s linear infinite;will-change:transform}
+/* Gelombang cahaya memancar keluar */
+.lg::after{content:"";position:absolute;inset:0;border-radius:50%;border:1px solid rgba(252,211,77,.75);animation:lgPulse 3.6s ease-out infinite;will-change:transform,opacity}
+.brand img{animation:lgBreath 6s ease-in-out infinite}
+/* Nama sekolah: kilat cahaya melintas + masuk perlahan */
+.brand b{background-image:linear-gradient(100deg,rgba(255,255,255,0) 40%,rgba(255,255,255,.95) 50%,rgba(255,255,255,0) 60%),linear-gradient(180deg,#fff7cc 0%,var(--gold) 45%,var(--gold2) 100%);
+  background-size:260% 100%,100% 100%;background-repeat:no-repeat;background-position:160% 0,0 0;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:txtIn .9s .35s cubic-bezier(.2,.8,.2,1) both}
+.brand small{display:block;animation:txtIn .9s .55s cubic-bezier(.2,.8,.2,1) both}
+/* Garis halus emas di bawah nama */
+.brand div::after{content:"";display:block;height:1px;margin-top:.5vh;background:linear-gradient(90deg,rgba(252,211,77,0),var(--gold),rgba(252,211,77,0));transform-origin:left center;animation:lnIn 1.2s .8s cubic-bezier(.2,.8,.2,1) both}
+/* Sapuan cahaya diagonal merentasi panel */
+.brand::after{content:"";position:absolute;top:0;bottom:0;left:0;width:28%;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.2),rgba(255,255,255,0));
+  transform:translateX(-150%) skewX(-20deg);animation:panelSweep 8s 3s ease-in-out infinite;will-change:transform}
+@keyframes lgIn{from{opacity:0;transform:scale(.6) rotate(-90deg)}to{opacity:1;transform:none}}
+@keyframes lgSpin{to{transform:rotate(360deg)}}
+@keyframes lgPulse{0%{opacity:.8;transform:scale(1)}70%,100%{opacity:0;transform:scale(1.45)}}
+@keyframes lgBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+@keyframes txtIn{from{opacity:0;transform:translateY(1vh)}to{opacity:1;transform:none}}
+@keyframes txtShine{0%,55%{background-position:160% 0,0 0}85%,100%{background-position:-60% 0,0 0}}
+@keyframes lnIn{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+@keyframes panelSweep{0%,60%{transform:translateX(-150%) skewX(-20deg)}100%{transform:translateX(700%) skewX(-20deg)}}
+@media (prefers-reduced-motion:reduce){.lg,.lg::before,.lg::after,.brand img,.brand b,.brand small,.brand div::after,.brand::after{animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="row h">
+  <div class="p brand"><span class="lg"><img id="logo" src="https://i.imgur.com/7AguIVd.png" alt=""></span><div><b>SMK SSAAS</b><small>SSAASTV</small></div></div>
+  <div class="p"><div class="t h1">Cuaca Shah Alam</div><div class="c" id="wx"><span class="k">Memuat...</span></div></div>
+  <div class="p"><div class="t h2">IPU APIMS</div><div class="c" id="ipu"><span class="k">Memuat...</span></div></div>
+  <div class="p"><div class="t h3">Waktu Solat</div><div class="c" id="sl"><span class="k">Memuat...</span></div></div>
+  <div class="p clock"><div id="ct">00:00</div><div id="cd">-</div></div>
+</div>
+
+<div class="row m">
+  <div class="p" id="mc">
+    <div id="ml">YOUTUBE</div>
+    <div class="ctl">
+      <button id="bSw" title="Tukar">&#9654;&#9632;</button>
+      <button id="bAu" title="Suara">&#128263;</button>
+      <button id="bFs" title="Skrin penuh">&#9974;</button>
+    </div>
+    <iframe id="yt" allow="autoplay; encrypted-media" src="about:blank"></iframe>
+    <video id="vd" playsinline autoplay></video>
+  </div>
+  <div class="p"><div class="t h1">Takwim Sekolah</div><div class="sc"><div id="tk"><div class="msg">Menarik data...</div></div></div></div>
+  <div class="p"><div class="t h2">Kehadiran</div><div class="sc"><div id="pc"><div class="msg">Menarik data...</div></div></div><div id="pcu"></div></div>
+</div>
+
+<div class="row b">
+  <div class="p" id="gal"><div class="t" style="position:absolute;top:0;left:0;right:0;z-index:2;background:#000a">Galeri Aktiviti</div><img id="g1" alt=""></div>
+  <div class="p"><div class="t h5">Info KPM / JPN</div><div class="sc"><div id="rs" class="rss"><div class="msg">Memuatkan berita...</div></div></div></div>
+  <div class="p"><div class="t h4">Selamat Hari Lahir &#127874;</div><div class="sc"><div id="bd"><div class="msg">Menarik data...</div></div></div></div>
+</div>
+
+<div class="p ft"><b>PENGUMUMAN &#128226;</b><div class="mq"><span id="mt">Selamat Datang ke SMK Sultan Salahuddin Abdul Aziz Shah. • Hadir Awal • Berkhidmat Dengan Ikhlas • Bekerja Secara Profesional • Mengutamakan Integriti • Membudayakan Kerja Berpasukan • Bersama Mencipta Kecemerlangan Sekolah dan Membina Generasi Masa Hadapan • Kecemerlangan Anda, Kebanggaan Kami.</span></div></div>
+
+<script>
+(function(){
+"use strict";
+var $=function(i){return document.getElementById(i)};
+var esc=function(s){var d=document.createElement("div");d.textContent=s==null?"":String(s);return d.innerHTML};
+
+/* ===== Perisai kestabilan: reload automatik bersihkan memori ===== */
+/* Reload hanya jika halaman boleh dicapai - elak skrin ralat/kosong bila internet putus */
+var RELOAD_MIN=60;
+function safeReload(){
+  if(location.protocol==="file:"){location.reload();return}
+  if(navigator.onLine===false){setTimeout(safeReload,60000);return}
+  tf(location.href.split("#")[0],10000).then(function(){location.reload()},function(){setTimeout(safeReload,60000)});
+}
+setTimeout(safeReload,RELOAD_MIN*60000);
+var errs=0;
+window.addEventListener("error",function(){if(++errs>40){errs=-1e9;safeReload()}});
+setInterval(function(){if(errs>0)errs=0},600000);
+/* Halang skrin tidur / screensaver */
+function wake(){try{if(navigator.wakeLock)navigator.wakeLock.request("screen").then(function(l){l.addEventListener("release",function(){setTimeout(wake,5000)})}).catch(function(){})}catch(e){}}
+wake();document.addEventListener("visibilitychange",function(){if(!document.hidden)wake()});
+
+/* ===== fetch dengan timeout + proksi berantai ===== */
+function tf(url,ms){
+  var ac=window.AbortController?new AbortController():null,
+      to=setTimeout(function(){ac&&ac.abort()},ms||12000);
+  return fetch(url,{cache:"no-store",signal:ac?ac.signal:undefined}).then(function(r){clearTimeout(to);if(!r.ok)throw 0;return r})
+    .catch(function(e){clearTimeout(to);throw e});
+}
+function chain(urls,parse){
+  var i=0;
+  return (function next(){
+    if(i>=urls.length)return Promise.reject();
+    return tf(urls[i++]).then(parse).then(function(v){if(!v)throw 0;return v}).catch(next);
+  })();
+}
+var px=function(u){var q=encodeURIComponent(u);return[
+  "https://api.allorigins.win/raw?url="+q,
+  "https://api.codetabs.com/v1/proxy?quest="+q,
+  "https://corsproxy.io/?"+q]};
+/* jadual kendiri: satu timer setiap tugas, tiada penumpukan */
+function every(fn,ms,retryMs){
+  (function run(){
+    var p;try{p=fn()}catch(e){p=Promise.reject()}
+    Promise.resolve(p).then(function(){setTimeout(run,ms)},function(){setTimeout(run,retryMs||15000)});
+  })();
+}
+/* skrol menegak ringan (satu animasi transform) */
+function scroll(box,pxPerSec,top){
+  if(box._a){try{box._a.cancel()}catch(e){}box._a=null}
+  var par=box.parentNode,ch=par.clientHeight,h=box.scrollHeight;
+  if(h<=ch||!box.animate)return;
+  if(top){
+    var run=(h-ch)/pxPerSec*1000,hold=5000,d=run+hold*2;
+    box._a=box.animate([{transform:"translateY(0)",offset:0},{transform:"translateY(0)",offset:hold/d},
+      {transform:"translateY("+(ch-h)+"px)",offset:(hold+run)/d},{transform:"translateY("+(ch-h)+"px)",offset:1}],
+      {duration:d,iterations:Infinity,easing:"linear"});
+    return;
+  }
+  box._a=box.animate([{transform:"translateY("+ch+"px)"},{transform:"translateY("+(-h)+"px)"}],
+    {duration:(h+ch)/pxPerSec*1000,iterations:Infinity,easing:"linear"});
+}
+function setHTML(el,html,spd,top){
+  if(el._h===html)return;el._h=html;el.innerHTML=html;if(spd)scroll(el,spd,top);
+}
+
+/* ===== 1. Jam: satu interval sahaja ===== */
+var H=["Ahad","Isnin","Selasa","Rabu","Khamis","Jumaat","Sabtu"],
+    B=["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
+function clock(){
+  var n=new Date(),h=n.getHours(),m=("0"+n.getMinutes()).slice(-2),ap=h>=12?"PM":"AM";
+  h=h%12||12;
+  $("ct").innerHTML=("0"+h).slice(-2)+":"+m+"<small>"+ap+"</small>";
+  $("cd").textContent=H[n.getDay()]+", "+n.getDate()+" "+B[n.getMonth()]+" "+n.getFullYear();
+}
+clock();setInterval(clock,10000);
+
+/* ===== 2. Waktu solat JAKIM SGR01 =====
+   - Papar serta-merta dari simpanan (cache) - tiada "Memuat..." lagi selepas kali pertama
+   - waktusolat.app (data JAKIM, sebulan sekali gus) & e-solat.gov.my ditarik SERENTAK, ambil yang paling cepat
+   - Waktu dikira dalam waktu Malaysia (UTC+8) walaupun zon masa Mi Box salah */
+function t12(t){if(!t)return"--";var p=String(t).split(":"),h=+p[0];return(h%12||12)+":"+p[1]+'<span class="k"> '+(h>=12?"PM":"AM")+"</span>"}
+function kl(){return new Date(Date.now()+8*3600000)}
+function dayKey(y,m,d){return y+"-"+m+"-"+d}
+function todayKey(){var d=kl();return dayKey(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate())}
+function hm(v){
+  if(v==null||v==="")return"";
+  if(typeof v==="number"||/^\d{9,}$/.test(String(v))){var d=new Date(+v*1000+8*3600000);return("0"+d.getUTCHours()).slice(-2)+":"+("0"+d.getUTCMinutes()).slice(-2)}
+  var p=String(v).split(":");return("0"+p[0]).slice(-2)+":"+(p[1]||"00");
+}
+function five(p){return[["Subuh",hm(p.fajr)],["Zohor",hm(p.dhuhr)],["Asar",hm(p.asr)],["Maghrib",hm(p.maghrib)],["Isyak",hm(p.isha)]]}
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function solatCache(){var c=lsGet("solat");return c&&c.days&&c.days[todayKey()]||null}
+function showSolat(L){
+  var n=kl(),cur=n.getUTCHours()*60+n.getUTCMinutes(),nx=-1;
+  for(var i=0;i<L.length;i++){var q=L[i][1].split(":");if(+q[0]*60+(+q[1])>cur){nx=i;break}}
+  setHTML($("sl"),L.map(function(x,i){return'<div'+(i===nx?' class="nx"':"")+'><div class="k">'+x[0]+'</div><div class="v">'+t12(x[1])+"</div></div>"}).join(""));
+}
+function anyOf(ps){return new Promise(function(res,rej){var n=ps.length;ps.forEach(function(p){p.then(res,function(){if(--n===0)rej()})})})}
+function solatWS(){
+  var u="https://api.waktusolat.app/v2/solat/SGR01";
+  return chain([u].concat(px(u)),function(r){return r.json()}).then(function(d){
+    if(!d||!d.prayers||!d.prayers.length)throw 0;
+    var o={};d.prayers.forEach(function(p){o[dayKey(d.year,d.month_number,p.day)]=five(p)});return o;
+  });
+}
+function solatJakim(){
+  var u="https://www.e-solat.gov.my/index.php?r=esolatApi/TakwimSolat&period=today&zone=SGR01";
+  return chain(px(u),function(r){return r.json()}).then(function(d){
+    var p=d&&d.prayerTime&&d.prayerTime[0];if(!p)throw 0;
+    var o={};o[todayKey()]=five(p);return o;
+  });
+}
+function solat(){
+  var c=solatCache(),st=lsGet("solat");
+  if(c)showSolat(c);
+  if(c&&st&&st.at&&Date.now()-st.at<6*3600000)return Promise.resolve();   /* data masih segar */
+  return anyOf([solatWS(),solatJakim()]).then(function(days){
+    var s2=lsGet("solat")||{};s2.days=s2.days||{};
+    for(var k in days)s2.days[k]=days[k];
+    var ks=Object.keys(s2.days);if(ks.length>70)ks.slice(0,ks.length-70).forEach(function(k){delete s2.days[k]});
+    s2.at=Date.now();lsSet("solat",s2);
+    var t=s2.days[todayKey()];if(!t)throw 0;
+    showSolat(t);
+  },function(e){if(!c)throw e});
+}
+every(solat,3600000,20000);
+/* Tanda waktu solat seterusnya & tukar hari tepat tengah malam (dari cache, tanpa internet) */
+setInterval(function(){var c=solatCache();if(c)showSolat(c);else solat().catch(function(){})},60000);
+
+/* ===== 3. Cuaca Open-Meteo ===== */
+function wi(c){return c<=3?["&#9728;&#65039;"]:c<=48?["&#9729;&#65039;"]:c<=67?["&#127783;&#65039;"]:c<=77?["&#10052;&#65039;"]:["&#9928;&#65039;"]}
+function cuaca(){
+  return tf("https://api.open-meteo.com/v1/forecast?latitude=3.0738&longitude=101.5183&daily=weathercode,temperature_2m_max&timezone=Asia%2FSingapore&forecast_days=3")
+  .then(function(r){return r.json()}).then(function(d){
+    var n=["Hari Ini","Esok","Lusa"],o="";
+    for(var i=0;i<3;i++)o+='<div><div class="k">'+n[i]+'</div><div class="e">'+wi(d.daily.weathercode[i])[0]+'</div><div class="v" style="color:#fff">'+Math.round(d.daily.temperature_2m_max[i])+"&deg;C</div></div>";
+    setHTML($("wx"),o);
+  });
+}
+every(cuaca,7200000);
+
+/* ===== 4. IPU APIMS (fallback WAQI) ===== */
+function showIPU(v){
+  var s,c,e;
+  if(v<=50){s="BAIK";c="#60a5fa";e="&#128578;"}
+  else if(v<=100){s="SEDERHANA";c="#4ade80";e="&#128528;"}
+  else if(v<=200){s="TIDAK SIHAT";c="#facc15";e="&#128577;"}
+  else if(v<=300){s="SANGAT TIDAK SIHAT";c="#f97316";e="&#128565;"}
+  else{s="BERBAHAYA";c="#ef4444";e="&#9760;&#65039;"}
+  setHTML($("ipu"),'<div><div style="color:'+c+'"><span class="e">'+e+'</span> <span class="big">'+v+'</span></div><div class="k" style="color:'+c+';font-weight:700">'+s+'</div><div class="src">MyEQMS APIMS</div></div>');
+}
+function ipu(){
+  var u="https://apims.doe.gov.my/data/public_v2/CAQM/last24hours.json";
+  return chain(px(u),function(r){return r.json()}).then(function(d){
+    var a=d["24hour_api_apims"]||d["24hour_api"]||(Array.isArray(d)?d:Object.values(d)[0]);
+    var row=a.filter(function(r){return r&&r.length>1&&String(r[1]).toUpperCase()==="SHAH ALAM"})[0];
+    if(!row)throw 0;
+    for(var i=row.length-1;i>=2;i--){var s=String(row[i]).replace(/[^0-9]/g,"");if(s){showIPU(+s);return 1}}
+    throw 0;
+  }).catch(function(){
+    return tf("https://api.waqi.info/feed/malaysia/selangor/shah-alam/?token=demo").then(function(r){return r.json()})
+      .then(function(w){if(w.status!=="ok")throw 0;showIPU(+w.data.aqi)});
+  });
+}
+every(ipu,900000);
+
+/* ===== 5. Media: hanya SATU pemain aktif pada satu masa ===== */
+var STREAM="https://d2idp3hzkhjpih.cloudfront.net/out/v1/4b85d9c2bf97413eb0c9fd875599b837/index.m3u8";
+var YT="https://www.youtube.com/embed/videoseries?list=PLVwWvWx-fcC0&autoplay=1&mute=1&loop=1&controls=0&enablejsapi=1&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&fs=0&playsinline=1";
+var yt=$("yt"),vd=$("vd"),ml=$("ml"),mode="yt",muted=false,hls=null,forced=false,lastT=-1,stuck=0,streamAt=0;
+function tryPlay(){
+  vd.muted=muted;
+  var p=vd.play();
+  if(p&&p.catch)p.catch(function(){
+    /* Pelayar sekat bunyi automatik: mainkan senyap dahulu, tunggu tekan butang remote */
+    muted=true;forced=true;vd.muted=true;audio();
+    ml.textContent="LIVE";
+    var q=vd.play();if(q&&q.catch)q.catch(function(){});
+  });
+}
+function unlock(){
+  if(forced&&mode==="st"){forced=false;muted=false;ml.textContent="LIVE";audio();vd.play().catch(function(){})}
+}
+["keydown","keyup","click","mousedown","pointerdown","touchstart"].forEach(function(e){document.addEventListener(e,unlock,true)});
+function stopStream(){
+  if(hls){try{hls.destroy()}catch(e){}hls=null}
+  vd.pause();vd.removeAttribute("src");vd.load();vd.style.display="none";
+}
+function startStream(){
+  if(hls){try{hls.destroy()}catch(e){}hls=null}
+  streamAt=Date.now();lastT=-1;stuck=0;
+  vd.style.display="block";
+  if(window.Hls&&Hls.isSupported()){
+    hls=new Hls({maxBufferLength:10,maxMaxBufferLength:20,backBufferLength:0,enableWorker:false,lowLatencyMode:false});
+    hls.on(Hls.Events.ERROR,function(_,d){
+      if(!d.fatal)return;
+      if(d.type===Hls.ErrorTypes.NETWORK_ERROR)hls.startLoad();
+      else if(d.type===Hls.ErrorTypes.MEDIA_ERROR)hls.recoverMediaError();
+      else{stopStream();setTimeout(function(){if(mode==="st")startStream()},5000)}
+    });
+    hls.loadSource(STREAM);hls.attachMedia(vd);
+    hls.on(Hls.Events.MANIFEST_PARSED,tryPlay);
+  }else{vd.src=STREAM;tryPlay()}
+}
+function setMode(m){
+  mode=m;
+  if(m==="yt"){stopStream();yt.style.display="block";yt.src=YT;ml.textContent="YOUTUBE";ml.style.background="#dc2626"}
+  else{yt.src="about:blank";yt.style.display="none";ml.textContent="LIVE";ml.style.background="#2563eb";forced=false;startStream();audio()}
+}
+function yc(f,a){try{yt.contentWindow.postMessage(JSON.stringify({event:"command",func:f,args:a||""}),"*")}catch(e){}}
+function audio(){
+  $("bAu").innerHTML=muted?"&#128263;":"&#128266;";
+  vd.muted=muted;
+  if(mode==="yt"){if(muted)yc("mute");else{yc("unMute");yc("setVolume",[100])}}
+}
+$("bSw").onclick=function(){setMode(mode==="yt"?"st":"yt")};
+$("bAu").onclick=function(){forced=false;muted=!muted;audio();if(mode==="st"){ml.textContent="LIVE";vd.play().catch(function(){})}};
+$("bFs").onclick=function(){$("mc").classList.toggle("fs")};
+/* Muat hls.js hanya apabila perlu (jimat RAM semasa mula) */
+var hlsLoaded=false,_set=setMode;
+setMode=function(m){
+  if(m==="st"&&!window.Hls&&!hlsLoaded){
+    hlsLoaded=true;var s=document.createElement("script");
+    s.src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js";
+    s.onload=function(){_set("st")};s.onerror=function(){hlsLoaded=false;_set("st")};
+    document.body.appendChild(s);mode="st";return;
+  }
+  _set(m);
+};
+setTimeout(function(){setMode("st")},1500);  /* beri halaman bernafas dahulu */
+/* Pemantau: jika YouTube beku selama 30 minit, muat semula iframe */
+setInterval(function(){if(mode==="yt"){yt.src="about:blank";setTimeout(function(){yt.src=YT},500)}},1800000);
+/* Pemantau LIVE: video beku 60s atau ralat -> mula semula; segar semula setiap 45 minit (lepaskan memori MSE) */
+setInterval(function(){
+  if(mode!=="st")return;
+  var t=vd.currentTime;
+  if(vd.error||t===lastT)stuck++;else stuck=0;
+  lastT=t;
+  if(stuck>=3||Date.now()-streamAt>2700000){stopStream();setTimeout(function(){if(mode==="st")startStream()},1000)}
+},20000);
+
+/* Navigasi remote: anak panah kitar butang */
+var fb=[$("bSw"),$("bAu"),$("bFs")];
+document.addEventListener("keydown",function(e){
+  var k=e.keyCode,i=fb.indexOf(document.activeElement);
+  if(k===39||k===40||k===37||k===38){
+    e.preventDefault();
+    i=i<0?0:(k===39||k===40?(i+1)%3:(i+2)%3);fb[i].focus();
+  }
+});
+setTimeout(function(){fb[0].focus()},2000);
+
+/* ===== 6. Google Sheets (JSONP berturutan, satu callback) ===== */
+var SID="16jIDLQGoCS31akUwhH3sJO6SgPpgitkP6tSmU1q-k3o",q=Promise.resolve(),cbn=0;
+function sheet(name,id,prio,tq){
+  var job=function(){return new Promise(function(res){
+    var s=document.createElement("script"),done=false,cb="__gv"+(++cbn%500);
+    function fin(v){if(done)return;done=true;clearTimeout(t);window[cb]=function(){};if(s.parentNode)s.parentNode.removeChild(s);res(v)}
+    var t=setTimeout(function(){fin(null)},prio?8000:15000);
+    window[cb]=function(d){if(d&&d.status==="error"){var e=d.errors&&d.errors[0];sheet.err=e?(e.reason||e.message||""):""}fin(d&&d.status==="error"?"X":d&&d.table?d.table.rows:null)};
+    s.onerror=function(){fin("X")};
+    s.onload=function(){setTimeout(function(){fin(null)},300)};   /* sheet peribadi: jangan tunggu timeout */
+    s.src="https://docs.google.com/spreadsheets/d/"+(id||SID)+"/gviz/tq?tqx=out:json;responseHandler:"+cb+"&headers=0&sheet="+encodeURIComponent(name)+(tq?"&tq="+encodeURIComponent(tq):"")+"&_="+Date.now();
+    document.body.appendChild(s);
+  })};
+  if(prio)return job();
+  q=q.then(job);return q;
+}
+function takwim(){
+  return sheet("TAKWIM").then(function(r){
+    var el=$("tk");
+    if(r==="X")return setHTML(el,'<div class="msg">Sheet terkunci</div>');
+    if(!r||!r.length)return setHTML(el,'<div class="msg">Tiada data takwim.</div>');
+    var o="",i=(r[0].c[0]&&String(r[0].c[0].v).toUpperCase()==="TARIKH")?1:0;
+    for(var nT=0;i<r.length&&nT<30;i++){
+      var c=r[i].c;if(!c||!c[0]||!c[1])continue;nT++;
+      var kat=(c[2]&&c[2].v)?String(c[2].v):"Umum",l=kat.toLowerCase(),
+          col=l.indexOf("peperiksaan")>-1?"#ef4444":l.indexOf("cuti")>-1?"#22c55e":l.indexOf("sukan")>-1?"#f97316":"#60a5fa";
+      o+='<div class="it" style="border-left-color:'+col+'"><div class="d">'+esc(c[0].f||c[0].v)+'</div><div class="a">'+esc(c[1].v)+'</div><div class="g">'+esc(kat)+"</div></div>";
+    }
+    setHTML(el,o||'<div class="msg">Tiada aktiviti.</div>',16);
+  });
+}
+function hariJadi(){
+  return sheet("HARI JADI").then(function(r){
+    var el=$("bd");
+    if(r==="X")return setHTML(el,'<div class="msg">Sheet terkunci</div>');
+    if(!r||!r.length)return setHTML(el,'<div class="msg">Tiada data.</div>');
+    /* Susun atur: A=NAMA GURU, B=TARIKH, C=NAMA MURID (cth 1A-AHMAD ...), D=TARIKH */
+    var G=[],M=[],note="",seen={};
+    function val(x){return x&&x.v!=null&&String(x.v).trim()!==""}
+    function dt(x){return x?String(x.f||x.v||""):""}
+    r.forEach(function(x){
+      var c=x&&x.c;if(!c)return;
+      if(val(c[0])){
+        var g=String(c[0].v).trim();
+        if(/^nama\b/i.test(g))return;                       /* baris tajuk */
+        if(/^tiada/i.test(g)){note=g;return}               /* "Tiada Hari Lahir Hari Ini" */
+        if(!seen["g"+g]){seen["g"+g]=1;G.push({n:g,d:dt(c[1])})}
+      }
+      if(val(c[2])){
+        var m=String(c[2].v).trim();
+        if(/^nama\b/i.test(m)||/^tiada/i.test(m))return;
+        var mt=/^(\d[A-Za-z0-9]*)\s*[-\u2013]\s*(.+)$/.exec(m),
+            cls=mt?mt[1].toUpperCase():"MURID",nm=mt?mt[2]:m;
+        if(!seen["m"+m]){seen["m"+m]=1;M.push({n:nm,c:cls,d:dt(c[3])})}
+      }
+    });
+    function card(n,lb,bg,d){
+      return'<div class="it bd" style="border-left-color:'+bg+'"><span style="font-size:2.2vh">&#127874;</span><div><div class="a">'+esc(n)+'</div><div class="d"><span style="background:'+bg+';color:#fff;border-radius:4px;padding:0 .5vh;margin-right:.6vh;font-size:1.1vh">'+esc(lb)+"</span>"+esc(d||"")+"</div></div></div>";
+    }
+    function sh(t,bg){return'<div style="background:'+bg+';color:#fff;font-weight:800;font-size:1.4vh;letter-spacing:.12em;text-align:center;border-radius:5px;padding:.4vh;margin:.8vh 0 .2vh">'+t+"</div>"}
+    var o=sh("GURU / AKP","#db2777");
+    G.forEach(function(p){o+=card(p.n,"GURU","#db2777",p.d)});
+    if(!G.length)o+='<div class="msg" style="margin:.8vh 0">'+esc(note||"Tiada hari lahir hari ini")+"</div>";
+    o+=sh("MURID","#2563eb");
+    M.forEach(function(p){o+=card(p.n,p.c,"#2563eb",p.d)});
+    if(!M.length)o+='<div class="msg" style="margin:.8vh 0">Tiada hari lahir murid hari ini</div>';
+    setHTML(el,o,16);
+  });
+}
+
+/* ===== Kehadiran: tab PASSCARD dalam sheet SSAASTV yang sama (SID) ===== */
+/* Sumber ASAL data scanner (sheet INOUT). PASSCARD hanya salinan IMPORTRANGE yang Google
+   kemas kini setiap ~beberapa minit hingga 30 minit - itulah punca data lambat masuk.
+   Jika sheet INOUT dikongsi "Sesiapa yang mempunyai pautan = Pemapar", TV baca terus (masa nyata). */
+var SRC_ID="1ZDrw4bFWjuwO7smUEKms3EGNG8lc1mtul17yFNY2wBQ",SRC_TAB="INOUT",srcBad=0,srcRetryAt=0;
+var PQ="select A,B,C limit 60";   /* data terbaru di ATAS - ambil 60 baris pertama sahaja (ringan) */
+function minOf(t){var m=/(\d{1,2})[:.](\d{2})(?::\d{2})?\s*([ap]\.?m)?/i.exec(String(t||""));if(!m)return-1;var h=+m[1];if(m[3]){h=h%12;if(/^p/i.test(m[3]))h+=12}return h*60+(+m[2])}
+function newestTop(r,start,iM){
+  function tm(row){var c=row&&row.c&&row.c[iM];return c?minOf(c.f||c.v):-1}
+  var a=-1,b=-1,i;
+  for(i=start;i<r.length&&a<0;i++)a=tm(r[i]);
+  for(i=r.length-1;i>=start&&b<0;i--)b=tm(r[i]);
+  return a<0||b<0?true:a>=b;
+}
+function passcard(){
+  var useSrc=srcBad<2||Date.now()>srcRetryAt;
+  var first=useSrc?sheet(SRC_TAB,SRC_ID,1,PQ).then(function(r){
+    if(r&&r!=="X"&&r.length){srcBad=0;passcard.src="INOUT";return r}
+    if(++srcBad>=2)srcRetryAt=Date.now()+1800000;   /* terkunci: cuba lagi 30 minit kemudian */
+    return null;
+  }):Promise.resolve(null);
+  return first.then(function(r){
+    if(r)return r;
+    passcard.src="PASSCARD";
+    return sheet("PASSCARD",null,1,PQ);
+  }).then(function(r){
+    if(r&&r!=="X"&&r.length)return r;
+    /* Sandaran: tarik CSV melalui proksi jika JSONP gagal */
+    var cu="https://docs.google.com/spreadsheets/d/"+SID+"/gviz/tq?tqx=out:csv&sheet=PASSCARD";
+    return chain(px(cu),function(x){return x.text()}).then(function(t){
+      if(/<html|<!doctype/i.test(t.slice(0,200)))throw 0;
+      var rows=[],row=[],f="",inq=false,i,ch;
+      for(i=0;i<t.length;i++){ch=t[i];
+        if(inq){if(ch==='"'){if(t[i+1]==='"'){f+='"';i++}else inq=false}else f+=ch}
+        else if(ch==='"')inq=true;
+        else if(ch===","){row.push(f);f=""}
+        else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&t[i+1]==="\n")i++;row.push(f);f="";rows.push(row);row=[]}
+        else f+=ch}
+      if(f!==""||row.length){row.push(f);rows.push(row)}
+      return rows.map(function(rw){return{c:rw.map(function(v){return{v:v}})}});
+    }).catch(function(){return r});
+  }).then(function(r){
+    var el=$("pc");
+    if(r==="X")return setHTML(el,'<div class="msg">Sheet terkunci<br><small>Kongsi: Sesiapa yang mempunyai pautan = Pemapar<br>'+esc(sheet.err||"")+'</small></div>');
+    if(!r||!r.length)return setHTML(el,'<div class="msg">Tiada data kehadiran.</div>');
+    function tx(x){return x&&x.v!=null?String(x.f||x.v).trim():""}
+    /* Lajur lalai: A=NAMA, B=MASA, C=STATUS. Jika baris 1 ada pengepala, lajur dikesan ikut nama */
+    var iN=0,iM=1,iS=2,start=0,h=r[0]&&r[0].c;
+    if(h){
+      var hd=h.map(function(x){return tx(x).toUpperCase()});
+      var isHead=hd.some(function(s){return /^(NAMA|MURID|PELAJAR|MASA|WAKTU|TIME|STATUS|TARIKH)/.test(s)});
+      if(isHead){
+        start=1;
+        hd.forEach(function(s,k){
+          if(/NAMA|MURID|PELAJAR/.test(s))iN=k;
+          else if(/MASA|WAKTU|TIME/.test(s))iM=k;
+          else if(/STATUS|KEHADIRAN|MASUK|KELUAR|IN\/OUT/.test(s))iS=k;
+        });
+      }
+    }
+    var L=[],K=[],old=passcard.k,first=!old;passcard.k={};
+    for(var i=start;i<r.length;i++){
+      var c=r[i]&&r[i].c;if(!c)continue;
+      var n=tx(c[iN]),m=tx(c[iM]),st=tx(c[iS]).toUpperCase();
+      if(!n||/^nama$/i.test(n))continue;
+      var masuk=/^(MASUK|IN|HADIR)/.test(st),keluar=/^(KELUAR|OUT|PULANG)/.test(st);
+      var col=masuk?"#22c55e":keluar?"#f97316":"#60a5fa",key=n+"|"+m+"|"+st;
+      passcard.k[key]=1;
+      L.push('<div class="it'+(!first&&!old[key]?" baru":"")+'" style="border-left-color:'+col+'"><div class="a">'+esc(n)+'</div>'+
+         '<div class="d" style="margin-top:.5vh"><span style="background:'+col+';color:#fff;border-radius:4px;padding:0 .6vh;margin-right:.8vh;font-size:1.2vh;font-weight:800">'+esc(st||"-")+'</span>'+esc(m)+'</div></div>');
+    }
+    var o=(newestTop(r,start,iM)?L.slice(0,40):L.slice(-40).reverse()).join("");   /* 40 terkini, terbaru di atas */
+    setHTML(el,o||'<div class="msg">Tiada data kehadiran.</div>',22,1);
+    var u=$("pcu"),d=new Date();if(u)u.textContent=(passcard.src||"")+" \u2022 Dikemas kini "+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)+":"+("0"+d.getSeconds()).slice(-2);
+  });
+}
+every(passcard,15000,15000);
+every(takwim,1800000,30000);
+every(hariJadi,1800000,30000);
+
+/* ===== 7. Galeri: satu <img>, imej kecil ===== */
+var G=[
+ "https://plus.unsplash.com/premium_photo-1663100722417-6e36673fe0ed?q=70&w=640&h=480&auto=format&fit=crop",
+ "https://images.unsplash.com/photo-1577896851231-70ef18881754?q=70&w=640&h=480&auto=format&fit=crop",
+ "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=70&w=640&h=480&auto=format&fit=crop"
+],gi=0,g1=$("g1");
+function gal(){
+  var im=new Image();
+  im.onload=function(){g1.style.opacity=0;setTimeout(function(){g1.src=im.src;g1.style.opacity=1;im.onload=null},1000)};
+  im.src=G[gi];gi=(gi+1)%G.length;
+}
+gal();setInterval(gal,10000);
+
+/* ===== 8. RSS KPM / JPNS ===== */
+var RSS=[
+ {s:"KPM",o:["https://www.moe.gov.my/index.php?format=feed&type=rss","https://www.moe.gov.my/?format=feed&type=rss","https://www.moe.gov.my/feed","https://www.moe.gov.my/en/?format=feed&type=rss"],
+  n:"https://news.google.com/rss/search?q=KPM+Kementerian+Pendidikan+when:14d&hl=ms&gl=MY&ceid=MY:ms"},
+ {s:"JPNS",o:["https://jpnselangor.moe.gov.my/index.php?format=feed&type=rss","https://jpnselangor.moe.gov.my/?format=feed&type=rss","https://jpnselangor.moe.gov.my/feed"],
+  n:"https://news.google.com/rss/search?q=JPN+Selangor+sekolah+when:30d&hl=ms&gl=MY&ceid=MY:ms"}
+];
+function pd(v){var d=new Date(String(v||"").replace(/^(\d{4}-\d\d-\d\d) /,"$1T"));return isNaN(d)?new Date():d}
+function parseFeed(t){
+  try{var j=JSON.parse(t);if(j&&j.items&&j.items.length)return j.items.slice(0,15).map(function(i){return{t:String(i.title||"").trim(),d:pd(i.pubDate)}})}catch(e){}
+  var x=new DOMParser().parseFromString(t,"text/xml");
+  if(x.querySelector("parsererror"))return null;
+  var n=x.querySelectorAll("item,entry");if(!n.length)return null;
+  return Array.prototype.slice.call(n,0,15).map(function(it){
+    var ti=it.querySelector("title"),dt=it.querySelector("pubDate")||it.querySelector("published")||it.querySelector("updated");
+    return{t:ti?ti.textContent.trim():"Berita",d:pd(dt&&dt.textContent)};
+  });
+}
+function getFeed(u){
+  var q=encodeURIComponent(u);
+  /* rss2json ambil di sebelah server (paling tahan sekatan), kemudian proksi */
+  var L=["https://api.rss2json.com/v1/api.json?rss_url="+q].concat(px(u));
+  return chain(L,function(r){return r.text().then(parseFeed)});
+}
+function firstFeed(list,i){
+  i=i||0;if(i>=list.length)return Promise.reject();
+  return getFeed(list[i]).catch(function(){return firstFeed(list,i+1)});
+}
+var store={};
+function render(){
+  var all=[];for(var k in store)all=all.concat(store[k]);
+  if(!all.length)return;
+  var seen={};all=all.filter(function(i){var z=i.t.toLowerCase();if(seen[z])return false;seen[z]=1;return true});
+  all.sort(function(x,y){return y.d-x.d});
+  var lim=Date.now()-30*864e5,fr=all.filter(function(i){return i.d>=lim});
+  if(!fr.length)fr=all;
+  setHTML($("rs"),fr.slice(0,14).map(function(i){
+    var k=i.s==="KPM";
+    return'<div class="it" style="border-left-color:'+(k?"#3b82f6":"#ef4444")+'"><div class="d" style="display:flex;justify-content:space-between"><span style="color:'+(k?"#60a5fa":"#f87171")+'">'+i.s+(i.w?" &bull; BERITA":"")+"</span><span>"+("0"+i.d.getDate()).slice(-2)+"/"+("0"+(i.d.getMonth()+1)).slice(-2)+"/"+i.d.getFullYear()+'</span></div><div class="a">'+esc(i.t)+"</div></div>";
+  }).join(""),14);
+}
+function rssNet(){
+  /* Setiap sumber berjalan selari & memaparkan serta-merta bila siap (tiada menunggu sumber lambat) */
+  var jobs=[];
+  RSS.forEach(function(c){
+    jobs.push(firstFeed(c.o.slice(0,2)).then(function(a){store[c.s+"o"]=a.slice(0,8).map(function(i){i.s=c.s;i.w=0;return i});render()}).catch(function(){}));
+    jobs.push(getFeed(c.n).then(function(a){store[c.s+"n"]=a.slice(0,8).map(function(i){i.s=c.s;i.w=1;return i});render()}).catch(function(){}));
+  });
+  return Promise.all(jobs).then(function(){
+    if(!Object.keys(store).length){
+      setHTML($("rs"),'<div class="msg">Tiada sambungan ke sumber berita.<br>Mencuba semula...</div>');
+      throw 0;
+    }
+  });
+}
+var RSSID="1ewban0hURANEyU0sJ-7zi7zM5jAh3CFvLBA_AwocUOU";
+function cl(t){return t.replace(/\s+-\s+[^-]+$/,"").replace(/\s+\|\s+[^|]+$/,"")}
+function gd(v){
+  var m=/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)/.exec(String(v));
+  return m?new Date(+m[1],+m[2],+m[3],+(m[4]||0),+(m[5]||0)):pd(v);
+}
+/* UTAMA: baca tab "INFO" dalam Google Sheet yang sama (Google yang tarik RSS, bukan TV) */
+function rss(){
+  return sheet("Sheet1",RSSID).then(function(r){
+    if(r&&r!=="X"){
+      var it=[];
+      r.forEach(function(x){
+        var c=x&&x.c;if(!c||!c[0]||!c[0].v)return;
+        var t=String(c[0].v).trim(),src=c[2]&&c[2].v?String(c[2].v).trim().toUpperCase():"";
+        if(!t||t.toUpperCase()==="TAJUK"||!/^(KPM|JPNS|JPN)$/.test(src))return;
+        it.push({t:cl(t)||t,d:c[1]&&c[1].v?gd(c[1].v):new Date(),s:src==="JPN"?"JPNS":src,w:0});
+      });
+      if(it.length){store={sh:it};render();return;}
+    }
+    return rssNet();   /* sandaran jika tab INFO tiada */
+  });
+}
+every(rss,1800000,30000);
+
+/* ===== 9. Marquee: satu animasi transform ===== */
+(function(){
+  var m=$("mt"),w=m.parentNode.clientWidth,t=m.scrollWidth;
+  if(m.animate)m.animate([{transform:"translateX("+w+"px)"},{transform:"translateX("+(-t)+"px)"}],{duration:(t+w)/60*1000,iterations:Infinity,easing:"linear"});
+})();
+
+/* logo fallback */
+$("logo").onerror=function(){this.onerror=null;this.src="https://i.imgur.com/7AguIVd.jpeg"};
+})();
+</script>
+</body>
+</html>

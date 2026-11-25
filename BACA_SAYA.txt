@@ -1,0 +1,10 @@
+CARA DAPATKAN APK (tanpa pasang apa-apa di komputer)
+1. Daftar/log masuk github.com -> New repository (cth: ssaastv) -> Create.
+2. Klik "uploading an existing file" -> seret SEMUA isi folder ini (termasuk folder .github) -> Commit.
+   (Jika folder .github tidak naik, cipta fail baru bernama .github/workflows/main.yml dan tampal isinya.)
+3. Tab "Actions" -> tunggu "Bina APK" jadi hijau (~3-5 minit).
+4. Klik larian itu -> bahagian Artifacts -> muat turun "SSAASTV-apk" (zip) -> keluarkan app-debug.apk.
+5. Salin APK ke pendrive -> pasang di Mi Box guna "File Commander"/"X-plore"
+   (benarkan "Install unknown apps").
+
+UBAH KANDUNGAN: edit app/src/main/assets/index.html di GitHub -> Commit -> APK baru dibina automatik.
